@@ -247,3 +247,17 @@ footer {
   .sidebar { width: 100%; height: auto; position: static; }
   main { padding: 1.5rem; }
 }
+
+/* Expandable Navigation */
+.lmcs-nav { list-style: none; padding: 0; margin: 0; }
+.lmcs-nav li { list-style: none; }
+.lmcs-nav .nav-group-header { display: flex; align-items: center; justify-content: space-between; }
+.lmcs-nav .nav-group-header .nav-link { flex: 1; }
+.lmcs-nav .nav-toggle { background: transparent; border: 0; color: var(--gray); cursor: pointer; padding: 0.25rem 0.5rem; font-size: 0.85rem; }
+.lmcs-nav .nav-toggle:hover { color: var(--red); }
+.lmcs-nav .nav-children { list-style: none; padding-left: 1rem; margin: 0; display: none; }
+.lmcs-nav .nav-group.open > .nav-children { display: block; }
+.lmcs-nav .nav-link { display: block; padding: 0.35rem 0.5rem; color: var(--dark); text-decoration: none; border-radius: 3px; }
+.lmcs-nav .nav-link:hover { background: var(--light-gray); color: var(--red); }
+.lmcs-nav .nav-link.active { background: #fde8e8; color: var(--red); font-weight: 600; }
+.lmcs-nav .nav-children .nav-link { font-size: 0.92rem; padding: 0.25rem 0.5rem; }
