@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Search – LMCS Bye Laws 2026</title>
   <link rel="stylesheet" href="style.css">
-  <script defer src="/LMCSByeLaws/nav.js"></script>
+  <script>
+    // Load nav.js relative to this page so it works on both GH Pages and local dev
+    (function(){var s=document.createElement('script');s.defer=true;s.src=new URL('nav.js',window.location.href).href;document.head.appendChild(s);})();
+  </script>
 </head>
 <body>
 <div class="topbar">
@@ -46,7 +49,8 @@
 <script>
 (function () {
   var BASE = '/LMCSByeLaws/';
-  var INDEX_URL = BASE + 'search-index.json';
+  // Use a URL relative to search.html itself — works both on GH Pages and local dev server
+  var INDEX_URL = new URL('search-index.json', window.location.href).href;
 
   /* ── helpers ── */
   function qs(sel) { return document.querySelector(sel); }
@@ -56,6 +60,13 @@
 
   function escapeHtml(s) {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Decode pre-cleaned text that might still have stray &amp; etc from old index
+  function decodeHtml(s) {
+    var d = document.createElement('textarea');
+    d.innerHTML = s;
+    return d.value;
   }
 
   function highlight(text, terms) {
@@ -132,15 +143,18 @@
       var ex  = excerpt(p.body, terms, 220);
       // show first matching heading if any
       var matchHead = (p.headings || []).find(function (h) {
-        return terms.some(function (t) { return h.toLowerCase().indexOf(t.toLowerCase()) !== -1; });
+        return h.toLowerCase() !== p.title.toLowerCase() &&
+               terms.some(function (t) { return h.toLowerCase().indexOf(t.toLowerCase()) !== -1; });
       }) || '';
+      var cleanTitle = decodeHtml(p.title);
+      var cleanBreadcrumb = p.breadcrumb ? decodeHtml(p.breadcrumb) : '';
       html += '<a class="search-result" href="' + url + '">';
-      html += '<div class="search-result-title">' + highlight(p.title, terms) + '</div>';
-      if (p.breadcrumb) {
-        html += '<div class="search-result-breadcrumb">' + escapeHtml(p.breadcrumb.replace(/›/g, '›')) + '</div>';
+      html += '<div class="search-result-title">' + highlight(cleanTitle, terms) + '</div>';
+      if (cleanBreadcrumb) {
+        html += '<div class="search-result-breadcrumb">' + escapeHtml(cleanBreadcrumb) + '</div>';
       }
       if (matchHead) {
-        html += '<div class="search-result-heading">' + highlight(matchHead, terms) + '</div>';
+        html += '<div class="search-result-heading">' + highlight(decodeHtml(matchHead), terms) + '</div>';
       }
       if (ex) {
         html += '<div class="search-result-excerpt">' + highlight(ex, terms) + '</div>';
