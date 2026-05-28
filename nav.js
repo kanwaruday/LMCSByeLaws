@@ -27,7 +27,10 @@
                 { label: 'Inventory & Infrastructure', href: 'employee-code-of-conduct/inventory-infrastructure/index.html' },
                 { label: 'Transport & Logistics', href: 'employee-code-of-conduct/transport-logistics/index.html' },
                 { label: 'School Rules', href: 'employee-code-of-conduct/school-rules/index.html' },
-                { label: 'Academics & Examination', href: 'employee-code-of-conduct/academics-examination/index.html' }
+                { label: 'Academics & Examination', href: 'employee-code-of-conduct/academics-examination/index.html' },
+                { label: 'School Events', href: 'employee-code-of-conduct/school-events/index.html' },
+                { label: 'Systems, IT & Technology', href: 'employee-code-of-conduct/systems-it-technology/index.html' },
+                { label: 'Archived', href: 'employee-code-of-conduct/archived/index.html' }
                       ]
       },
       {
