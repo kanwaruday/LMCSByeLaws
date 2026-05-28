@@ -1,5 +1,8 @@
 (function(){
-    var BASE = '/LMCSByeLaws/';
+    var BASE = (function(){
+     var p = window.location.pathname;
+     return p.indexOf('/LMCSByeLaws/') >= 0 ? '/LMCSByeLaws/' : '/';
+   })();
     var sections = [
       { label: 'Home', href: 'index.html' },
       { label: 'Abbreviations', href: 'abbreviations.html' },
