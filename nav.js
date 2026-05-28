@@ -22,6 +22,7 @@
               children: [
                 { label: 'Appointments & HR', href: 'employee-code-of-conduct/appointments-hr/index.html' },
                 { label: 'Service Rules, Leaves & Job Roles', href: 'employee-code-of-conduct/service-rules-leaves-job-roles/index.html' },
+                { label: 'School Staff', href: 'employee-code-of-conduct/school-staff/index.html' },
                 { label: 'Reports', href: 'employee-code-of-conduct/reports/index.html' },
                 { label: 'Inventory & Infrastructure', href: 'employee-code-of-conduct/inventory-infrastructure/index.html' },
                 { label: 'Transport & Logistics', href: 'employee-code-of-conduct/transport-logistics/index.html' },
@@ -32,7 +33,12 @@
       {
               label: 'Administrative',
               href: 'administrative-code-of-conduct/index.html',
-              children: []
+              children: [
+                { label: 'Admin Reports', href: 'administrative-code-of-conduct/admin-reports/index.html' },
+                { label: 'School Processes', href: 'administrative-code-of-conduct/school-processes/index.html' },
+                { label: 'Past Fee Structures', href: 'administrative-code-of-conduct/past-fees-structures/index.html' },
+                { label: 'Archived Decisions', href: 'administrative-code-of-conduct/archived-decisions/index.html' }
+              ]
       }
         ];
 
