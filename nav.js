@@ -97,7 +97,7 @@
                  if (hasChildren){
                            html += '<li class="nav-group' + (open ? ' open' : '') + '">';
                            html += '<div class="nav-group-header"><a href="' + BASE + sec.href + '" class="nav-link' + activeCls + '">' + sec.label + '</a>';
-                           html += '<button class="nav-toggle" aria-label="Toggle" type="button">' + (open ? '\u25BE' : '\u25B8') + '</button></div>';
+                           html += '<button class="nav-toggle" aria-label="Toggle" type="button">' + (open ? '▾' : '▸') + '</button></div>';
                            html += '<ul class="nav-children">';
                            sec.children.forEach(function(ch){
                                        var chActive = isActive(ch.href, cur) ? ' active' : '';
@@ -116,9 +116,73 @@
                         e.preventDefault();
                         var group = btn.closest('.nav-group');
                         var isOpen = group.classList.toggle('open');
-                        btn.textContent = isOpen ? '\u25BE' : '\u25B8';
+                        btn.textContent = isOpen ? '▾' : '▸';
               });
       });
+   }
+
+   // ── Mobile nav: hamburger + slide-in drawer ──────────────────────────
+   function setupMobileNav(){
+     var nav = document.querySelector('nav.sidebar');
+     var topbar = document.querySelector('.topbar');
+     if (!nav || !topbar) return;
+
+     // Create hamburger button
+     var hamburger = document.createElement('button');
+     hamburger.className = 'nav-hamburger';
+     hamburger.setAttribute('aria-label', 'Open navigation');
+     hamburger.setAttribute('aria-expanded', 'false');
+     hamburger.innerHTML = '<span></span><span></span><span></span>';
+
+     // Insert between brand and topbar-right
+     var topbarRight = topbar.querySelector('.topbar-right');
+     if (topbarRight) {
+       topbar.insertBefore(hamburger, topbarRight);
+     } else {
+       topbar.appendChild(hamburger);
+     }
+
+     // Create dim overlay
+     var overlay = document.createElement('div');
+     overlay.className = 'nav-overlay';
+     overlay.setAttribute('aria-hidden', 'true');
+     document.body.appendChild(overlay);
+
+     function openNav(){
+       nav.classList.add('mobile-open');
+       overlay.classList.add('visible');
+       hamburger.classList.add('open');
+       hamburger.setAttribute('aria-expanded', 'true');
+       hamburger.setAttribute('aria-label', 'Close navigation');
+       document.body.style.overflow = 'hidden';
+     }
+
+     function closeNav(){
+       nav.classList.remove('mobile-open');
+       overlay.classList.remove('visible');
+       hamburger.classList.remove('open');
+       hamburger.setAttribute('aria-expanded', 'false');
+       hamburger.setAttribute('aria-label', 'Open navigation');
+       document.body.style.overflow = '';
+     }
+
+     hamburger.addEventListener('click', function(){
+       nav.classList.contains('mobile-open') ? closeNav() : openNav();
+     });
+
+     overlay.addEventListener('click', closeNav);
+
+     // Close on Escape
+     document.addEventListener('keydown', function(e){
+       if (e.key === 'Escape') closeNav();
+     });
+
+     // Close when a nav link is tapped (navigating away)
+     nav.addEventListener('click', function(e){
+       if (e.target.classList.contains('nav-link') && e.target.tagName === 'A'){
+         closeNav();
+       }
+     });
    }
 
    // Press "/" to focus the sidebar search input
@@ -136,9 +200,10 @@
    }
 
    if (document.readyState === 'loading'){
-         document.addEventListener('DOMContentLoaded', function(){ build(); setupSearchShortcut(); });
+         document.addEventListener('DOMContentLoaded', function(){ build(); setupMobileNav(); setupSearchShortcut(); });
    } else {
          build();
+         setupMobileNav();
          setupSearchShortcut();
    }
 })();
