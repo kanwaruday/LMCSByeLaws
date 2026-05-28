@@ -65,7 +65,19 @@
          var nav = document.querySelector('nav.sidebar');
          if (!nav) return;
          var cur = currentPath();
-         var html = '<div class="section-label">Navigation</div><ul class="lmcs-nav">';
+
+         // Search form — prepopulate when on the search page
+         var searchQ = '';
+         if (cur === 'search.html') {
+           searchQ = new URLSearchParams(window.location.search).get('q') || '';
+         }
+         var html = '<form class="nav-search-form" action="' + BASE + 'search.html" method="get" autocomplete="off">'
+           + '<div class="nav-search-wrap">'
+           + '<input type="search" name="q" class="nav-search-input" placeholder="Search…" value="' + searchQ.replace(/"/g,'&quot;') + '" spellcheck="false" aria-label="Search">'
+           + '<button type="submit" class="nav-search-btn" aria-label="Go">&#9906;</button>'
+           + '</div></form>';
+
+         html += '<div class="section-label">Navigation</div><ul class="lmcs-nav">';
          sections.forEach(function(sec){
                  var hasChildren = sec.children && sec.children.length > 0;
                  var open = sectionContainsCurrent(sec, cur);
@@ -97,9 +109,24 @@
       });
    }
 
+   // Press "/" to focus the sidebar search input
+   function setupSearchShortcut(){
+         document.addEventListener('keydown', function(e){
+                 if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+                 var tag = (document.activeElement || {}).tagName || '';
+                 if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+                 var inp = document.querySelector('.nav-search-input');
+                 if (!inp) return;
+                 e.preventDefault();
+                 inp.focus();
+                 inp.select();
+         });
+   }
+
    if (document.readyState === 'loading'){
-         document.addEventListener('DOMContentLoaded', build);
+         document.addEventListener('DOMContentLoaded', function(){ build(); setupSearchShortcut(); });
    } else {
          build();
+         setupSearchShortcut();
    }
 })();

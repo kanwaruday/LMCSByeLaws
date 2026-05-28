@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search – LMCS Bye Laws 2026</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="/LMCSByeLaws/nav.js"></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="/LMCSByeLaws/index.html">LMCS Bye Laws 2026</a>
+  <a class="home-link" href="/LMCSByeLaws/index.html">&#8592; Home</a>
+</div>
+<div class="breadcrumb">
+  <a href="/LMCSByeLaws/index.html">Home</a><span>›</span>
+  Search
+</div>
+<div class="container">
+  <nav class="sidebar"></nav>
+  <main>
+    <h1>Search</h1>
+
+    <form class="search-page-form" id="searchForm" action="/LMCSByeLaws/search.html" method="get" autocomplete="off">
+      <div class="search-page-row">
+        <input
+          type="search"
+          id="searchInput"
+          name="q"
+          class="search-page-input"
+          placeholder="Search policies, rules, guidelines…"
+          spellcheck="false"
+          autofocus
+        >
+        <button type="submit" class="search-page-btn">Search</button>
+      </div>
+    </form>
+
+    <div id="searchStatus" class="search-status"></div>
+    <div id="searchResults"></div>
+
+    <footer><p>LMCS Bye Laws 2026 &mdash; La Montessori Chain of Schools &mdash; Confidential Internal Document</p></footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var BASE = '/LMCSByeLaws/';
+  var INDEX_URL = BASE + 'search-index.json';
+
+  /* ── helpers ── */
+  function qs(sel) { return document.querySelector(sel); }
+  function param(name) {
+    return new URLSearchParams(window.location.search).get(name) || '';
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function highlight(text, terms) {
+    if (!terms.length) return escapeHtml(text);
+    var escaped = escapeHtml(text);
+    terms.forEach(function (t) {
+      var re = new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+      escaped = escaped.replace(re, '<mark class="search-highlight">$1</mark>');
+    });
+    return escaped;
+  }
+
+  function excerpt(body, terms, maxLen) {
+    maxLen = maxLen || 200;
+    if (!body) return '';
+    // find first term occurrence and return surrounding context
+    var lower = body.toLowerCase();
+    var best = -1;
+    terms.forEach(function (t) {
+      var pos = lower.indexOf(t.toLowerCase());
+      if (pos !== -1 && (best === -1 || pos < best)) best = pos;
+    });
+    if (best === -1) return body.slice(0, maxLen) + (body.length > maxLen ? '…' : '');
+    var start = Math.max(0, best - 60);
+    var end   = Math.min(body.length, start + maxLen);
+    return (start > 0 ? '…' : '') + body.slice(start, end) + (end < body.length ? '…' : '');
+  }
+
+  function score(page, terms) {
+    var s = 0;
+    var tl = (page.title  || '').toLowerCase();
+    var hl = (page.headings || []).join(' ').toLowerCase();
+    var bl = (page.body   || '').toLowerCase();
+    terms.forEach(function (t) {
+      var tLow = t.toLowerCase();
+      // title hits
+      var i = 0, pos;
+      while ((pos = tl.indexOf(tLow, i)) !== -1) { s += 10; i = pos + 1; }
+      // heading hits
+      i = 0;
+      while ((pos = hl.indexOf(tLow, i)) !== -1) { s += 5; i = pos + 1; }
+      // body hits
+      i = 0;
+      while ((pos = bl.indexOf(tLow, i)) !== -1) { s += 1; i = pos + 1; }
+    });
+    return s;
+  }
+
+  function doSearch(index, query) {
+    var terms = query.trim().split(/\s+/).filter(Boolean);
+    if (!terms.length) return [];
+    var results = [];
+    index.forEach(function (page) {
+      var s = score(page, terms);
+      if (s > 0) results.push({ page: page, score: s });
+    });
+    results.sort(function (a, b) { return b.score - a.score; });
+    return results.slice(0, 30);
+  }
+
+  function renderResults(results, query, terms) {
+    var status = qs('#searchStatus');
+    var container = qs('#searchResults');
+    if (!results.length) {
+      status.textContent = 'No results for "' + query + '".';
+      container.innerHTML = '<p class="search-no-results">Try different keywords, or <a href="/LMCSByeLaws/index.html">browse all sections</a>.</p>';
+      return;
+    }
+    status.textContent = results.length + ' result' + (results.length !== 1 ? 's' : '') + ' for "' + query + '"';
+    var html = '';
+    results.forEach(function (r) {
+      var p = r.page;
+      var url = BASE + p.url;
+      var ex  = excerpt(p.body, terms, 220);
+      // show first matching heading if any
+      var matchHead = (p.headings || []).find(function (h) {
+        return terms.some(function (t) { return h.toLowerCase().indexOf(t.toLowerCase()) !== -1; });
+      }) || '';
+      html += '<a class="search-result" href="' + url + '">';
+      html += '<div class="search-result-title">' + highlight(p.title, terms) + '</div>';
+      if (p.breadcrumb) {
+        html += '<div class="search-result-breadcrumb">' + escapeHtml(p.breadcrumb.replace(/›/g, '›')) + '</div>';
+      }
+      if (matchHead) {
+        html += '<div class="search-result-heading">' + highlight(matchHead, terms) + '</div>';
+      }
+      if (ex) {
+        html += '<div class="search-result-excerpt">' + highlight(ex, terms) + '</div>';
+      }
+      html += '</a>';
+    });
+    container.innerHTML = html;
+  }
+
+  function init() {
+    var query = param('q');
+    var input = qs('#searchInput');
+    if (input && query) input.value = query;
+
+    if (!query) {
+      qs('#searchStatus').textContent = 'Enter a search term above.';
+      return;
+    }
+
+    qs('#searchStatus').textContent = 'Searching…';
+
+    fetch(INDEX_URL)
+      .then(function (r) { return r.json(); })
+      .then(function (index) {
+        var terms   = query.trim().split(/\s+/).filter(Boolean);
+        var results = doSearch(index, query);
+        renderResults(results, query, terms);
+      })
+      .catch(function (err) {
+        qs('#searchStatus').textContent = 'Could not load search index.';
+        console.error(err);
+      });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
