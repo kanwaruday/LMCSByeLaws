@@ -185,6 +185,24 @@
      });
    }
 
+   // Link back to the LMCS Portal, inserted into every page's topbar
+   function addPortalLink(){
+     var topbar = document.querySelector('.topbar');
+     if (!topbar || topbar.querySelector('.home-link')) return;
+     var link = document.createElement('a');
+     link.className = 'home-link';
+     link.href = 'https://kanwaruday.github.io/LMCSManagement/index.html';
+     link.target = '_blank';
+     link.rel = 'noopener';
+     link.textContent = '← LMCS Portal';
+     var brand = topbar.querySelector('.brand');
+     if (brand && brand.nextSibling) {
+       topbar.insertBefore(link, brand.nextSibling);
+     } else {
+       topbar.appendChild(link);
+     }
+   }
+
    // Press "/" to focus the sidebar search input
    function setupSearchShortcut(){
          document.addEventListener('keydown', function(e){
@@ -200,10 +218,11 @@
    }
 
    if (document.readyState === 'loading'){
-         document.addEventListener('DOMContentLoaded', function(){ build(); setupMobileNav(); setupSearchShortcut(); });
+         document.addEventListener('DOMContentLoaded', function(){ build(); setupMobileNav(); setupSearchShortcut(); addPortalLink(); });
    } else {
          build();
          setupMobileNav();
          setupSearchShortcut();
+         addPortalLink();
    }
 })();
