@@ -21,6 +21,11 @@
     <h1>LMCS Bye Laws 2026</h1>
     <p style="color:#555;font-size:0.95rem;">La Montessori Chain of Schools &mdash; Official School Bye Laws and Code of Conduct</p>
 
+    <div id="updatesBanner" class="updates-banner" hidden>
+      <div class="updates-banner-title">Latest Updates</div>
+      <ul id="updatesList" class="updates-list"></ul>
+    </div>
+
     <div class="card-grid" style="margin-top:2rem;">
       <a class="card" href="abbreviations.html">
         <div class="card-icon">📋</div>
@@ -160,6 +165,54 @@
     </footer>
   </main>
 </div>
+
+<script>
+// Latest Updates banner — reads Ref./Date already extracted into search-index.json
+// by build-search-index.py, so this stays current automatically on every rebuild;
+// nothing here needs manual editing when a new office order is added.
+(function () {
+  var MAX_ITEMS = 6;
+  var MONTHS = ['january','february','march','april','may','june','july','august',
+                'september','october','november','december'];
+
+  function parseDate(d) {
+    var m = /(\d{1,2})(?:st|nd|rd|th)\s+([A-Za-z]+)\s+(\d{4})/.exec(d || '');
+    if (!m) return null;
+    var mi = MONTHS.indexOf(m[2].toLowerCase());
+    if (mi === -1) return null;
+    return new Date(Number(m[3]), mi, Number(m[1]));
+  }
+
+  function isArchived(url) { return /\/archived[^/]*\//.test(url); }
+
+  fetch(new URL('search-index.json', window.location.href).href)
+    .then(function (r) { return r.json(); })
+    .then(function (index) {
+      var items = index
+        .filter(function (p) { return p.date && !isArchived(p.url); })
+        .map(function (p) { return { page: p, when: parseDate(p.date) }; })
+        .filter(function (x) { return x.when; })
+        .sort(function (a, b) { return b.when - a.when; })
+        .slice(0, MAX_ITEMS);
+
+      if (!items.length) return; // leave banner hidden
+
+      var list = document.getElementById('updatesList');
+      list.innerHTML = items.map(function (x) {
+        var p = x.page;
+        var refHtml = p.ref ? '<span class="update-ref">' + p.ref.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</span>' : '';
+        return '<li><a class="update-link" href="' + p.url + '">'
+          + '<span class="update-title">' + p.title.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</span>'
+          + '<span class="update-date">' + p.date + '</span>'
+          + refHtml
+          + '</a></li>';
+      }).join('');
+
+      document.getElementById('updatesBanner').hidden = false;
+    })
+    .catch(function () { /* fetch failed (e.g. opened via file://) — banner stays hidden */ });
+})();
+</script>
 
 </body>
 </html>

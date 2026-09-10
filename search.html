@@ -95,13 +95,21 @@
     return (start > 0 ? '…' : '') + body.slice(start, end) + (end < body.length ? '…' : '');
   }
 
+  // Loose match for Office Order refs: "OO 05 26", "oo/05/26" and "OO-05-26"
+  // should all find "HES/MD(Op.)/UK/OO/05/26" — strip everything but letters/digits.
+  function normalizeRef(s) { return (s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
   function score(page, terms) {
     var s = 0;
     var tl = (page.title  || '').toLowerCase();
     var hl = (page.headings || []).join(' ').toLowerCase();
     var bl = (page.body   || '').toLowerCase();
+    var rl = normalizeRef(page.ref);
     terms.forEach(function (t) {
       var tLow = t.toLowerCase();
+      // Ref. number hits (e.g. searching "OO/05/26" or "05/26") — weighted like title,
+      // since a Ref. is a near-unique identifier for one office order.
+      if (rl && normalizeRef(t).length >= 3 && rl.indexOf(normalizeRef(t)) !== -1) s += 10;
       // title hits
       var i = 0, pos;
       while ((pos = tl.indexOf(tLow, i)) !== -1) { s += 10; i = pos + 1; }
@@ -152,6 +160,13 @@
       html += '<div class="search-result-title">' + highlight(cleanTitle, terms) + '</div>';
       if (cleanBreadcrumb) {
         html += '<div class="search-result-breadcrumb">' + escapeHtml(cleanBreadcrumb) + '</div>';
+      }
+      if (p.ref || p.date) {
+        html += '<div class="search-result-meta">';
+        if (p.ref) html += '<span class="ref">' + highlight(decodeHtml(p.ref), terms) + '</span>';
+        if (p.ref && p.date) html += ' &nbsp;·&nbsp; ';
+        if (p.date) html += escapeHtml(p.date);
+        html += '</div>';
       }
       if (matchHead) {
         html += '<div class="search-result-heading">' + highlight(decodeHtml(matchHead), terms) + '</div>';

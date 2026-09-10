@@ -7,7 +7,7 @@ SKIP_FILES = {'search.html'}
 
 HTML_ENTITIES = {'&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"',
                   '&#8592;': '', '&#8594;': '', '&#8593;': '', '&#8595;': '',
-                  '&mdash;': '—', '&ndash;': '–', '&nbsp;': ' '}
+                  '&mdash;': '—', '&ndash;': '–', '&nbsp;': ' ', '&bull;': ' '}
 
 def decode_entities(text):
     for ent, rep in HTML_ENTITIES.items():
@@ -45,9 +45,26 @@ def parse_page(content):
     m = re.search(r'<div[^>]+class="breadcrumb"[^>]*>(.*?)</div>', content, re.DOTALL | re.IGNORECASE)
     breadcrumb = clean(decode_entities(strip_tags(m.group(1)))) if m else ''
 
-    return title, headings, body, breadcrumb
+    # Office Order Ref. and Date/Issued, if present — covers all three markup variants
+    # used across the site ("Ref.: X   Date: Y", "X • Issued: Y", and split <span> meta
+    # rows) by matching against the already tag-stripped body text. Ref and date are
+    # matched as ONE pattern (ref directly followed by Date:/Issued:) rather than two
+    # independent searches, so an incidental "OO/05/26" mentioned in a card blurb on an
+    # unrelated listing page (no adjacent date) is never mistaken for that page's own
+    # office order.
+    om = re.search(
+        r'(?:Ref\.?:\s*)?((?:HES/MD\([^)]*\)/[A-Za-z.()]+/)?OO/[0-9A-Za-z()./-]+)'
+        r'\s+(?:Date|Issued)\s*:\s*(\d{1,2}(?:st|nd|rd|th)\s+[A-Za-z]+\s+\d{4})',
+        body)
+    ref = om.group(1).strip() if om else ''
+    date = om.group(2).strip() if om else ''
+
+    return title, headings, body, breadcrumb, ref, date
 
 index = []
+# ponytail: flat char cap, not a real tokenizer/paginator — bump this (or move to
+# per-section chunks) if a future page's searchable content still gets cut off.
+BODY_CHAR_CAP = 8000
 
 for dirpath, dirs, files in os.walk(ROOT):
     dirs[:] = sorted(d for d in dirs if not d.startswith('.'))
@@ -60,16 +77,23 @@ for dirpath, dirs, files in os.walk(ROOT):
         rel = os.path.relpath(fpath, ROOT).replace('\\', '/')
         with open(fpath, encoding='utf-8') as f:
             content = f.read()
-        title, headings, body, breadcrumb = parse_page(content)
+        title, headings, body, breadcrumb, ref, date = parse_page(content)
         if not title:
             continue
-        index.append({
+        entry = {
             'url': rel,
             'title': title,
             'headings': headings,
             'breadcrumb': breadcrumb,
-            'body': body[:3000]
-        })
+            'body': body[:BODY_CHAR_CAP]
+        }
+        if ref:
+            entry['ref'] = ref
+        if date:
+            entry['date'] = date
+        index.append(entry)
+        if len(body) > BODY_CHAR_CAP:
+            print(f'  ! truncated: {rel} ({len(body)} chars > {BODY_CHAR_CAP} cap) — raise BODY_CHAR_CAP')
 
 out_path = os.path.join(ROOT, 'search-index.json')
 with open(out_path, 'w', encoding='utf-8') as f:
