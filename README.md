@@ -61,9 +61,9 @@ lmcs-bye-laws/
 │   │   ├── fines.html
 │   │   └── resignation-rules.html
 │   ├── service-rules-leaves-job-roles/
-│   │   ├── job-roles.html
-│   │   ├── leave-vacation-rules.html
-│   │   └── incentives-bonuses.html
+│   │   ├── job-roles/index.html
+│   │   ├── leave-vacation-rules/index.html
+│   │   └── incentives-bonuses/index.html
 │   ├── reports/
 │   │   ├── registers-at-school.html
 │   │   └── evaluation-of-performance.html
@@ -76,7 +76,7 @@ lmcs-bye-laws/
 │   │   ├── code-of-conduct.html
 │   │   └── communication-at-lms.html
 │   └── academics-examination/
-│       └── examination-process.html
+│       └── examination-process/index.html
 │
 └── administrative-code-of-conduct/
     └── index.html
