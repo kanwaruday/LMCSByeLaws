@@ -9,6 +9,11 @@ Takes one or more new LMCS office order documents and incorporates them into bot
 public bye-laws site (`kanwaruday.github.io/LMCSByeLaws`) and Uday's Obsidian vault
 knowledge base, as a single unit of work.
 
+> **Twin copy:** this file is intentionally duplicated at
+> `~/.claude/skills/reconcile-LMCS-office-order/SKILL.md` so the skill is available in
+> any session, not only ones rooted in this repo. If you edit one copy, edit the other
+> to match — there is no sync mechanism between them.
+
 ## Invocation
 
 `/reconcile-LMCS-office-order <path-to-pdf-or-docx> [more paths...]`
